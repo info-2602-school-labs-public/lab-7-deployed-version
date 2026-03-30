@@ -23,4 +23,4 @@ async def index_view(
         samesite="none",
         secure=True
     )
-    return response
+    return response 
