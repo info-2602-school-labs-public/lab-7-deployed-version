@@ -1,12 +1,213 @@
 {% extends "authenticated-base.html" %}
 
-{% block external_js %}
-<script src="{{ url_for('static', path='js/app.js')}}"></script>
+{% block additional_styles %}
+<style>
+    .admin-card {
+        border-radius: 1rem;
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+    }
+</style>
 {% endblock %}
 
 
 {% block subpage_content %}
 
-   I am the admin page
+<div class="container-fluid">
+
+    <!-- HEADER -->
+    <div class="mb-4">
+        <h3 class="fw-bold">Admin Dashboard</h3>
+        <p class="text-muted">View and filter all users' todos</p>
+    </div>
+
+
+    <!-- SEARCH + FILTER -->
+    <div class="card shadow-sm admin-card p-4 mb-4">
+
+        <form method="GET" action="/admin">
+
+            <div class="row g-3 align-items-center">
+
+                <!-- SEARCH -->
+                <div class="col-md-6">
+                    <input type="text"
+                           name="q"
+                           class="form-control"
+                           placeholder="Search todos..."
+                           value="{{ q }}">
+                </div>
+
+                <!-- FILTER -->
+                <div class="col-md-4 d-flex gap-3">
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="done"
+                               value="true"
+                               onchange="this.form.submit()"
+                               {% if done == "true" %}checked{% endif %}>
+                        <label class="form-check-label">Done</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="done"
+                               value="false"
+                               onchange="this.form.submit()"
+                               {% if done == "false" %}checked{% endif %}>
+                        <label class="form-check-label">Pending</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="done"
+                               value="any"
+                               onchange="this.form.submit()"
+                               {% if done == "any" %}checked{% endif %}>
+                        <label class="form-check-label">Any</label>
+                    </div>
+
+                </div>
+
+                <!-- BUTTONS -->
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        Search
+                    </button>
+
+                    <button type="button"
+                            onclick="this.form.q.value=''; this.form.submit();"
+                            class="btn btn-outline-secondary w-100">
+                        Clear
+                    </button>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="card shadow-sm admin-card p-3">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover text-center align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th class="text-start">Task</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for todo in todos %}
+                    <tr>
+
+                        <td>{{ todo.id }}</td>
+
+                        <td class="fw-semibold">
+                            {{ todo.user.username }}
+                        </td>
+
+                        <td class="text-start">
+                            {{ todo.text }}
+                        </td>
+
+                        <td>
+                            {% if todo.done %}
+                                <span class="badge bg-success">Done</span>
+                            {% else %}
+                                <span class="badge bg-danger">Pending</span>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+
+    <!-- PAGINATION -->
+    <div class="d-flex justify-content-between align-items-center mt-4">
+
+        <nav>
+            <ul class="pagination mb-0">
+
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="{{ url_for('admin_home_view')}}?page={{ pagination.prev_num }}&limit={{ pagination.limit }}&q={{ q }}&done={{ done }}">
+                        &laquo;
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                {% endif %}
+
+                {% for page_num in pagination.iter_pages() %}
+                    {% if pagination.page == page_num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{{ url_for('admin_home_view')}}?page={{ page_num }}&limit={{ pagination.limit }}&q={{ q }}&done={{ done }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="{{ url_for('admin_home_view')}}?page={{ pagination.next_num }}&limit={{ pagination.limit }}&q={{ q }}&done={{ done }}">
+                        &raquo;
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                {% endif %}
+
+            </ul>
+        </nav>
+
+
+        <!-- LIMIT -->
+        <select class="form-select"
+                style="width: auto;"
+                onchange="location = this.value;">
+
+            {% for n in [10, 25, 50, 100] %}
+            <option value="{{ url_for('admin_home_view') }}?page=1&limit={{ n }}&q={{ q }}&done={{ done }}"
+                    {% if pagination.limit == n %}selected{% endif %}>
+                {{ n }} rows
+            </option>
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+</div>
 
 {% endblock %}

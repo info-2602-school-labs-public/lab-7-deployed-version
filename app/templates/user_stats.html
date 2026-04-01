@@ -1,0 +1,66 @@
+{% extends "authenticated-base.html" %}
+
+{% block subpage_content %}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+        <h3 class="fw-bold">My Stats</h3>
+        <p class="text-muted">Task completion overview</p>
+    </div>
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm text-center">
+                <h5>Done</h5>
+                <h2 class="text-success" id="done">0</h2>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm text-center">
+                <h5>Pending</h5>
+                <h2 class="text-warning" id="pending">0</h2>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card mt-4 p-4 shadow-sm">
+        <div id="userChart" style="height:400px;"></div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/highcharts@11/highcharts.js"></script>
+
+<script>
+function draw(done, pending){
+    Highcharts.chart('userChart', {
+        chart: { type: 'pie' },
+        title: { text: 'My Todo Status' },
+        series: [{
+            name: 'Tasks',
+            data: [
+                { name: 'Done', y: done },
+                { name: 'Pending', y: pending }
+            ]
+        }]
+    });
+}
+
+async function load(){
+    const res = await fetch('/user-stats-data');
+    const data = await res.json();
+
+    document.getElementById("done").innerText = data.done;
+    document.getElementById("pending").innerText = data.pending;
+
+    draw(data.done, data.pending);
+}
+
+load();
+</script>
+
+{% endblock %}
