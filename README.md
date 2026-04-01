@@ -1,7 +1,7 @@
 # Live Site
 
 Live site is located at the following address:
-`https://lab-7-deployed-version.onrender.com`
+[Lab 7 Deployed](https://lab-7-deployed-version.onrender.com)
 
 
 # FastAPIStarter
