@@ -19,8 +19,9 @@ def seed_data():
     with get_cli_session() as db:
 
         # Check if already seeded
-        existing = db.exec(select(User)).first()
-        if existing:
+        existing_users = db.exec(select(User)).first()
+        existing_todos = db.exec(select(Todo)).first()
+        if existing_users and existing_todos:
             print("Data already exists. Skipping seed.")
             return
 
