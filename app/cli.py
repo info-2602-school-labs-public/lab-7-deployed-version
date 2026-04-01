@@ -1,4 +1,5 @@
 # WITH CSV 
+import os
 import typer
 import csv
 from tabulate import tabulate
@@ -40,8 +41,13 @@ def seed_data():
         # ================= CSV TODOS =================
         print("Loading todos from CSV...")
 
+        BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+        CSV_PATH = os.path.join(BASE_DIR, "todos.csv")
+        print("CSV PATH:", CSV_PATH)
+        print("Exists:", os.path.exists(CSV_PATH))
+
         try:
-            with open("todos.csv", newline="") as file:
+            with open(CSV_PATH, newline="") as file:
                 reader = csv.DictReader(file)
 
                 for row in reader:
@@ -55,7 +61,7 @@ def seed_data():
             db.commit()
             print("Todos seeded successfully.")
         except FileNotFoundError:
-            print("CSV file not found. Skipping todos.")
+            print("CSV file not found at:", CSV_PATH)
 
         print("Seed complete")
 
