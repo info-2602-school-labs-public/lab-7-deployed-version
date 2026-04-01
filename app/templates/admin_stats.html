@@ -1,0 +1,48 @@
+{% extends "authenticated-base.html" %}
+
+{% block subpage_content %}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+        <h3 class="fw-bold">Admin Stats</h3>
+        <p class="text-muted">System-wide todo distribution</p>
+    </div>
+
+    <div class="card shadow-sm p-4">
+        <div id="adminChart" style="height:400px;"></div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/highcharts@11/highcharts.js"></script>
+
+<script>
+function drawChart(data){
+    Highcharts.chart('adminChart', {
+        chart: { type: 'pie' },
+        title: { text: 'Todos per User' },
+        series: [{
+            name: 'Todos',
+            data: data
+        }]
+    });
+}
+
+function convert(data){
+    return Object.keys(data).map(user => ({
+        name: user,
+        y: data[user]
+    }));
+}
+
+async function load(){
+    const res = await fetch('/admin-stats-data');
+    const data = await res.json();
+    drawChart(convert(data));
+}
+
+load();
+</script>
+
+{% endblock %}
