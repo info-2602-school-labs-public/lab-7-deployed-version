@@ -18,6 +18,7 @@ cli = typer.Typer()
 def seed_data():
     with get_cli_session() as db:
 
+        # Check if already seeded
         existing_users = db.exec(select(User)).first()
         existing_todos = db.exec(select(Todo)).first()
 
@@ -42,22 +43,26 @@ def seed_data():
         # ================= CSV TODOS =================
         print("Loading todos from CSV...")
 
-        BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+        BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         CSV_PATH = os.path.join(BASE_DIR, "todos.csv")
 
         print("CSV PATH:", CSV_PATH)
         print("Exists:", os.path.exists(CSV_PATH))
 
+        if not os.path.exists(CSV_PATH):
+            print("CSV NOT FOUND — skipping todo seed")
+            return
+
         try:
             with open(CSV_PATH, newline="", encoding="utf-8") as file:
-                reader = csv.DictReader(file, delimiter="\t")
+                reader = csv.DictReader(file)
 
                 count = 0
 
                 for i, row in enumerate(reader):
                     try:
                         todo = Todo(
-                            text=row["text"],
+                            text=row["text"].strip(),
                             done=row["done"].strip().lower() == "true",
                             user_id=int(row["user_id"])
                         )
@@ -68,10 +73,7 @@ def seed_data():
                         print(f"Skipping bad row {i}: {row} -> {row_err}")
 
                 db.commit()
-                print(f"Todos seeded successfully. Inserted {count} todos.")
-
-        except FileNotFoundError:
-            print("CSV file not found at:", CSV_PATH)
+                print(f"Todos seeded successfully. Inserted {count}")
 
         except Exception as e:
             print("ERROR loading CSV:", str(e))
