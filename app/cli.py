@@ -21,6 +21,7 @@ def seed_data():
         # Check if already seeded
         existing_users = db.exec(select(User)).first()
         existing_todos = db.exec(select(Todo)).first()
+
         if existing_users and existing_todos:
             print("Data already exists. Skipping seed.")
             return
@@ -42,30 +43,42 @@ def seed_data():
         # ================= CSV TODOS =================
         print("Loading todos from CSV...")
 
-        BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+        BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         CSV_PATH = os.path.join(BASE_DIR, "todos.csv")
+
         print("CSV PATH:", CSV_PATH)
         print("Exists:", os.path.exists(CSV_PATH))
 
+        if not os.path.exists(CSV_PATH):
+            print("CSV NOT FOUND — skipping todo seed")
+            return
+
         try:
-            with open(CSV_PATH, newline="") as file:
+            with open(CSV_PATH, newline="", encoding="utf-8") as file:
                 reader = csv.DictReader(file)
 
-                for row in reader:
-                    todo = Todo(
-                        text=row["text"],
-                        done=row["done"].lower() == "true",
-                        user_id=int(row["user_id"])
-                    )
-                    db.add(todo)
+                count = 0
 
-            db.commit()
-            print("Todos seeded successfully.")
-        except FileNotFoundError:
-            print("CSV file not found at:", CSV_PATH)
+                for i, row in enumerate(reader):
+                    try:
+                        todo = Todo(
+                            text=row["text"].strip(),
+                            done=row["done"].strip().lower() == "true",
+                            user_id=int(row["user_id"])
+                        )
+                        db.add(todo)
+                        count += 1
+
+                    except Exception as row_err:
+                        print(f"Skipping bad row {i}: {row} -> {row_err}")
+
+                db.commit()
+                print(f"Todos seeded successfully. Inserted {count}")
+
+        except Exception as e:
+            print("ERROR loading CSV:", str(e))
 
         print("Seed complete")
-
 
 # =========================================================
 # FULL RESET (MANUAL USE ONLY)
